@@ -1,0 +1,9 @@
+celerybeat.pid
+.idea/
+.ropeproject/
+__pycache__/
+venv/
+.DS_Store
+celerybeat-schedule
+celerydb.sqlite
+zk-single-kafka-single/

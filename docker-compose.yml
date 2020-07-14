@@ -1,0 +1,123 @@
+version: "3.7"
+services:
+
+  superset-web:
+    container_name: superset-web
+    image: superset:local
+    command: ["gunicorn", "-w", "10", "-k", "gevent", "-b", "0.0.0.0:8000", "--log-level", "INFO",  "superset.app:create_app()"]
+    volumes:
+      - ./compose/superset:/etc/superset
+    depends_on:
+      - superset-cache
+      - superset-db
+    ports:
+      - "8000:8000"
+    env_file: ./.env.superset
+
+  superset-beat:
+    env_file: .env.epona
+    container_name: superset-beat
+    image: superset:local
+    command: ["celery", "beat", "--app=superset.tasks.celery_app:app", "-l", "INFO"]
+    volumes:
+      - ./compose/superset:/etc/superset
+    depends_on:
+      - superset-cache
+      - superset-db
+
+  superset-worker:
+    container_name: superset-worker
+    image: superset:local
+    command: ["celery", "worker", "--app=superset.tasks.celery_app:app", "-Ofair", "-l", "INFO"]
+    volumes:
+      - ./compose/superset:/etc/superset
+    depends_on:
+      - superset-cache
+      - superset-db
+    env_file: ./.env.superset
+
+  superset-toolbox:
+    container_name: superset-toolbox
+    image: superset:local
+    command: ["sleep", "5d"]
+    volumes:
+      - ./compose/superset:/etc/superset
+    depends_on:
+      - superset-cache
+      - superset-db
+    env_file: ./.env.superset
+
+  superset-flower:
+    container_name: superset-flower
+    image: superset:local
+    command: ["celery", "flower", "--app=superset.tasks.celery_app:app", "-l", "INFO"]
+    volumes:
+      - ./compose/superset:/etc/superset
+    depends_on:
+      - superset-cache
+      - superset-db
+    env_file: ./.env.superset
+
+  superset-cache:
+    image: redis:4.0
+    container_name: superset-cache
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis:/data
+
+  superset-db:
+    env_file: .env.superset
+    image: postgres:12
+    container_name: superset-db
+    restart: unless-stopped
+    volumes:
+      - pg-data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+
+  epona-zookeeper:
+    image: zookeeper:3.4.9
+    container_name: epona-zookeeper
+    ports:
+      - "2181:2181"
+    volumes:
+      - zookeeper-data:/data
+      - zookeeper-datalog:/datalog
+    env_file: .env.epona
+
+  epona-kafka:
+    image: confluentinc/cp-kafka:5.5.0
+    container_name: epona-kafka
+    volumes:
+      - kafka-data:/var/lib/kafka/data
+    ports:
+      - "9092:9092"
+    depends_on:
+      - epona-zookeeper
+    env_file: .env.epona
+
+  epona-clickhouse:
+    container_name: epona-clickhouse
+    image: yandex/clickhouse-server
+    ports:
+      - "8123:8123"
+      - "9000:9000"
+      - "9009:9009"
+    healthcheck:
+      test: ["CMD-SHELL", "nc -z 127.0.0.1 9000 || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    env_file: .env.epona
+
+
+volumes:
+  redis: {}
+  zookeeper-data: {}
+  zookeeper-datalog: {}
+  kafka-data: {}
+  kafka-datalog: {}
+  pg-data: {}
