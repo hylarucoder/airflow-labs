@@ -40,14 +40,18 @@ docker-build: ## > docker build airflow
 docker-build-nocache: ## > docker build airflow --no-cache
 	docker build -t 'airflow:local' -f 'compose/airflow/Dockerfile' --no-cache .
 
+start:
+	docker compose run --rm airflow-web
+
+list-dag:
+	docker compose run --rm --no-deps airflow-init airflow dags list 
+
 dbinit:
 	docker compose run --rm airflow-init airflow db init
+	docker compose run --rm airflow-init airflow users  create --role Admin --username admin --email admin --firstname admin --lastname admin --password admin
 
 shell:
 	docker compose run --rm airflow-init airflow db shell
-
-init-admin:
-	docker compose run --rm airflow-init airflow users  create --role Admin --username admin --email admin --firstname admin --lastname admin --password admin
 
 worker-info:
 	docker compose run airflow-worker airflow info

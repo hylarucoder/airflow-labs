@@ -8,3 +8,5 @@ celerybeat-schedule
 celerydb.sqlite
 zk-single-kafka-single/
 postgres-data/
+compose/airflow/dags
+compose/airflow/logs
