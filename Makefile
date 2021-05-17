@@ -23,29 +23,31 @@ endef
 export PRINT_HELP_PYSCRIPT
 BROWSER := python -c "$$BROWSER_PYSCRIPT"
 
-SUPERSET_DOCKER_RUN := docker exec -i -t superset-toolbox
-
 help:
 	@python -c "$$PRINT_HELP_PYSCRIPT" < $(MAKEFILE_LIST)
 
 sep--sep-a: ## ========== 开发时命令 ==============
 
-
 up: ## up
-	docker-compose up
-
-toolbox: ## Enter Shell
-	$(SUPERSET_DOCKER_RUN) /bin/bash
-
-dbshell: ## Enter psql as postgres
-	$(PG_DOCKER_RUN) su postgres -c "psql -U superset"
+	docker compose up
 
 sep--sep-e: ## ========== Docker 镜像相关 ==============
 	echo "## ========== 本行只是优雅的分割线  ==============="
 
-docker-build-superset: ## > docker build superset
-	docker build -t 'superset:local' -f 'compose/superset/Dockerfile' .
+docker-build: ## > docker build airflow
+	docker build -t 'airflow:local' -f 'compose/airflow/Dockerfile' .
 
-docker-build-f-superset: ## > docker build superset --no-cache
-	docker build -t 'superset:local' -f 'compose/superset/Dockerfile' --no-cache .
+docker-build-nocache: ## > docker build airflow --no-cache
+	docker build -t 'airflow:local' -f 'compose/airflow/Dockerfile' --no-cache .
 
+dbinit:
+	docker compose run --rm airflow-init airflow db init
+
+shell:
+	docker compose run --rm airflow-init airflow db shell
+
+init-admin:
+	docker compose run --rm airflow-init airflow users  create --role Admin --username admin --email admin --firstname admin --lastname admin --password admin
+
+worker-info:
+	docker compose run airflow-worker airflow info

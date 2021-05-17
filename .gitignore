@@ -7,3 +7,4 @@ venv/
 celerybeat-schedule
 celerydb.sqlite
 zk-single-kafka-single/
+postgres-data/
