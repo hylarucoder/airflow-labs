@@ -7,7 +7,7 @@ from airflow.utils.dates import days_ago
 # old way
 
 with models.DAG(
-        dag_id="modal training",
+        dag_id="modal_training",
         description="模型",
         start_date=days_ago(1),
         schedule_interval="@daily",
