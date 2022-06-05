@@ -1,0 +1,12 @@
+celerybeat.pid
+.idea/
+.ropeproject/
+__pycache__/
+venv/
+logs
+.DS_Store
+celerybeat-schedule
+celerydb.sqlite
+zk-single-kafka-single/
+postgres-data/
+compose/airflow/logs
